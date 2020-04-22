@@ -77,13 +77,31 @@ int main()
         printf("Message from client: \n %s", read_buf);
 
         //TODO: Parse Request
+        const char *end_of_method = strchr(read_buf, ' ');
+        const char *end_of_url = strchr(end_of_method + 1, ' ');
+        printf("Found end points of strings successfully");
+
+        char method[end_of_method - read_buf + 1];
+        char url[end_of_url - (end_of_method + 1) + 1];
+        printf("Allocated memory for strings successfully");
+
+        strncpy(method, read_buf,  end_of_method - read_buf);
+        strncpy(url, end_of_method + 1, end_of_url - (end_of_method + 1));
+        printf("Copied strings successfully");    
+
+        method[sizeof(method) - 1] = 0;
+        url[sizeof(url) - 1] = 0;
+        printf("NULL terminated strings successfully"); 
+
+        printf("Parsed request as: \n")
+        printf("Method: %s\n", method);
+        printf("URL: %s\n", url);
 
         //TODO: Retreive appropriate file - handle not found error
 
         //TODO: Set up write buffer    
         memset(write_buf, 0, MAX_WRITE_BUF_SIZE);
         char* helloWorld = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 13\n\nHello, world!";
-        printf("%s", helloWorld);
         memcpy(write_buf, helloWorld, strlen(helloWorld)); //FIXME: Dummy code
         write_buf_size = strlen(write_buf);
 
@@ -96,7 +114,7 @@ int main()
             close(client_fd);
             continue;
         }
-        printf("Message echoed back to client \n");
+        printf("Response to client: \n %s", write_buf);
         
         //Close connection
         close(client_fd);
