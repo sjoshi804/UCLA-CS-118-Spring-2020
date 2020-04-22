@@ -2,3 +2,4 @@ server
 client
 *.dSYM
 .DS_Store
+*.tar.gz
