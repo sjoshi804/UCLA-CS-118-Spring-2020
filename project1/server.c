@@ -24,7 +24,7 @@
 #define CRLF "\r\n\r\n"
 #define HTML_EXT ".html"
 #define HTML_CONT_TYPE "Content-Type: text/html; charset=utf-8\n"
-#define TXT_EXT ".html"
+#define TXT_EXT ".txt"
 #define TXT_CONT_TYPE "Content-Type: text/plain; charset=utf-8\n"
 #define JPG_EXT ".jpg"
 #define JPG_CONT_TYPE "Content-Type: image/jpeg\n"
