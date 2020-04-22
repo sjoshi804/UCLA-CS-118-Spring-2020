@@ -2,7 +2,7 @@
 
 default: build
 
-build: clean client server
+build: clean server
 
 client:
 	gcc -g -Wall -Wextra -Werror -pthread client.c -o client

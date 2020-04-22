@@ -1,3 +1,4 @@
 server
 client
-*.DSYM
+*.dSYM
+.DS_Store
