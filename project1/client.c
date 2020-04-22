@@ -1,4 +1,3 @@
-// *** Author: Zhiyi Zhang for CS118, Time: 04/10/2020, TCP Client Sample Code ***
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
