@@ -15,22 +15,22 @@
 #define MAX_HEAD_BUF_SIZE 2048 //2KB
 #define METHOD_GET "GET"
 #define EMPTY_STRING ""
-#define METHOD_NOT_ALLOWED "HTTP/1.0 405 Method Not Allowed\nServer: Siddharth Joshi\r\n\r\n"
-#define FILE_NOT_FOUND "HTTP/1.0 404 Not Found\nServer: Siddharth Joshi\n\r\n\r\n"
-#define DEFAULT "HTTP/1.0 200 OK\nServer: Siddharth Joshi\nContent-Type: text/html\nContent-Length: 13\r\n\r\nHello, world!"
+#define METHOD_NOT_ALLOWED "HTTP/1.0 405 Method Not Allowed\r\nServer: Siddharth Joshi\r\n\r\n"
+#define FILE_NOT_FOUND "HTTP/1.0 404 Not Found\r\nServer: Siddharth Joshi\r\n\r\n"
+#define DEFAULT "HTTP/1.0 200 OK\r\nServer: Siddharth Joshi\r\nContent-Type: text/html\r\nContent-Length: 13\r\n\r\nHello, world!"
 #define MAX_SMALL_BUF_SIZE 100
-#define OK "HTTP/1.0 200 OK\nServer: Siddharth Joshi\n"
+#define OK "HTTP/1.0 200 OK\r\nServer: Siddharth Joshi\r\n"
 #define CONTENT_LENGTH "Content-Length: "
-#define CRLF "\r\n\r\n"
+#define DOUBLE_CRLF "\r\n\r\n"
 #define HTML_EXT ".html"
-#define HTML_CONT_TYPE "Content-Type: text/html; charset=utf-8\n"
+#define HTML_CONT_TYPE "Content-Type: text/html; charset=utf-8\r\n"
 #define TXT_EXT ".txt"
-#define TXT_CONT_TYPE "Content-Type: text/plain; charset=utf-8\n"
+#define TXT_CONT_TYPE "Content-Type: text/plain; charset=utf-8\r\n"
 #define JPG_EXT ".jpg"
-#define JPG_CONT_TYPE "Content-Type: image/jpeg\n"
+#define JPG_CONT_TYPE "Content-Type: image/jpeg\r\n"
 #define PNG_EXT ".png"
-#define PNG_CONT_TYPE "Content-Type: image/png\n"
-#define BIN_CONT_TYPE "Content-Type: application/octet-stream\n"
+#define PNG_CONT_TYPE "Content-Type: image/png\r\n"
+#define BIN_CONT_TYPE "Content-Type: application/octet-stream\r\n"
 
 int main()
 {
@@ -232,8 +232,8 @@ int main()
         strcpy(header_buf + header_offset, content_length_buf);
         header_offset += strlen(content_length_buf);
 
-        //Append CRLF to Header
-        strcpy(header_buf + header_offset, CRLF);
+        //Append DOUBLE_CRLF to Header - one to end content length, one to indicate end of header
+        strcpy(header_buf + header_offset, DOUBLE_CRLF);
 
         // *** Merge Header and Body into Write Buffer *** //
         strcpy(write_buf, header_buf);
