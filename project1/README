@@ -1,5 +1,51 @@
 README
 
+Siddharth Joshi
+105032378
+sjoshi804@gmail.com
+
+High Level Description:
+- Initialize socket
+- Setup local listening address
+- Bind socket to local listening address
+- Start listening on socket for connections
+- BEGIN LOOP: Accepting and Responding to connections
+    - Reset buffers used to avoid mixup of data
+    - Accept connection from client 
+    - Read from socket
+    - Parse request to get method type and url
+    - Open file at url
+    - Read file into buffer
+    - Construct header using extension in url and length of file 
+    - Merge header and body i.e. file to make response
+    - Write response to file descriptor corresponding to connection with client
+
+Challenges Faced:
+- Segmentation Faults: Dealing with strings in C is always painful, and 
+incrementally constructing a string in the fashion required for the header and 
+eventually the response made it even trickier. I used fixed buffers created at 
+the beginning use the specifications of the project and used a temp buffer to 
+help copy things around. 
+- Issues with Image Files: I was using strcpy to copy over the file data into 
+the response and while this was working for html and txt file types, this 
+failed for the image types. This was probably due to the fact that the image 
+files had the null byte appear in them and strcpy only copies uptill the 
+nullbyte. As a result I switched to memcpy. Similarly, I was using strlen to 
+determine the length of the file, but instead switched to using the value 
+returned when reading the file into the buffer. 
+- Issues with Binary File: I had a small bug at the end where I was checking 
+for all supported extensions and if none were found, setting the content-type 
+to binary. However, this approach had an issue since I was using strchr to get 
+a pointer to the first occurence of . to determine the starting point of the 
+extension, but when this didn't exist - this returns NULL and my if statements 
+comparing the extension to the various supported extensions resulted in 
+segmentation faults. This was fixed by dealing with the case of binary files 
+first. As an additional feature, I let the existing logic remain, so if the 
+file extension requested is not supported, the file is sent as binary by the 
+server. 
+
 Acknowledgements:
 
 * TA Zhiyi Zhang starter code
+* StackOverflow
+* http://man7.org/
