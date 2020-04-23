@@ -10,7 +10,7 @@ client:
 server:
 	gcc -g -Wall -Wextra -Werror -pthread server.c -o server
 
-dist: 
+dist: clean
 	mkdir 105032378_project_1
 	cp server.c 105032378_project_1/server.c
 	cp README 105032378_project_1/README
