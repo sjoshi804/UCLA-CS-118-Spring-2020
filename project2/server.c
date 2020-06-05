@@ -10,7 +10,6 @@
 
 #define MAX_BUFF_SIZE 524
 #define MAX_PAYLOAD_SIZE 512
-#define MAX_FILE_SIZE 10485760
 #define FLAG_SYN 1
 #define FLAG_ACK 2
 #define FLAG_FIN 4
@@ -28,7 +27,6 @@ int main(int argc, char **argv)
 	unsigned char read_buffer[MAX_BUFF_SIZE]; 
 	unsigned char write_buffer[MAX_BUFF_SIZE];
     char recv_log_buffer[MAX_BUFF_SIZE];
-    unsigned char file_buffer[MAX_BUFF_SIZE];
     time_t random_seed;
 	struct sockaddr_in servaddr, cliaddr; 
 	
@@ -74,9 +72,9 @@ int main(int argc, char **argv)
         short recv_seq_num = (read_buffer[0] << 8) + read_buffer[1];
         short recv_ack_num = (read_buffer[2] << 8) + read_buffer[3];
         size_t recv_data_len = 1;
-        char recv_syn_flag = read_buffer[4] & 1;
-        char recv_ack_flag = (read_buffer[4] >> 1) & 1;
-        char recv_fin_flag = (read_buffer[4] >> 2) & 1;
+        char recv_syn_flag = read_buffer[4] % 2;
+        char recv_ack_flag = (read_buffer[4] - 2 == 0) || (read_buffer[4] - 2 == 1) || (read_buffer[4] - 2 == 4) || (read_buffer[4] - 2 == 5);
+        char recv_fin_flag = (read_buffer[4] - 4 == 0) || (read_buffer[4] - 4 == 1) || (read_buffer[4] - 4 == 2) || (read_buffer[4] - 4 == 3);
         //Write Log
         memset(recv_log_buffer, 0, MAX_BUFF_SIZE);
         sprintf(recv_log_buffer, "RECV %d %d", recv_seq_num, recv_ack_num);
@@ -100,7 +98,7 @@ int main(int argc, char **argv)
         //**** Send SYN ACK Message *****
         //Contruct Message
         short send_seq_num = rand() % 25601;
-        short send_ack_num = recv_seq_num + recv_data_len;
+        short send_ack_num = (recv_seq_num + recv_data_len) % 25601;
         short datagram_len = 0;
         //Write SEQ NUM and ACK NUM to datagram
         write_buffer[0] = (send_seq_num >> 8) & 0xff;
@@ -124,6 +122,19 @@ int main(int argc, char **argv)
         //Increment sequence number
         send_seq_num = (send_seq_num + 1) % 25601;
 
+        //********* Open file for writing ***********
+        char file_name[7] = "1.file";
+        file_name[6] = 0;
+        client_count += 1;
+        file_name[0] = client_count + '0';
+        FILE *fp = fopen(file_name, "w");
+        if (!fp)
+        {
+            perror("Error opening a file");
+            close(sockfd);
+            exit(1);
+        }
+
         //***** Loop, Read and Copy into Buffer Until Fin Message Received
         char fin_msg_recvd = 0;
         int bytes_recvd = 0;
@@ -135,9 +146,9 @@ int main(int argc, char **argv)
                 &len); 
             recv_seq_num = (read_buffer[0] << 8) + read_buffer[1];
             recv_ack_num = (read_buffer[2] << 8) + read_buffer[3];
-            recv_syn_flag = read_buffer[4] + 1;
-            recv_ack_flag = (read_buffer[4] >> 1) & 1;
-            recv_fin_flag = (read_buffer[4] >> 2) & 1;
+            recv_syn_flag = read_buffer[4] % 2;
+            recv_ack_flag = (read_buffer[4] - 2 == 0) || (read_buffer[4] - 2 == 1) || (read_buffer[4] - 2 == 4) || (read_buffer[4] - 2 == 5);
+            recv_fin_flag = (read_buffer[4] - 4 == 0) || (read_buffer[4] - 4 == 1) || (read_buffer[4] - 4 == 2) || (read_buffer[4] - 4 == 3);
             recv_data_len = (read_buffer[5] << 8) + read_buffer[6];
             //Write Log
             memset(recv_log_buffer, 0, MAX_BUFF_SIZE);
@@ -162,7 +173,14 @@ int main(int argc, char **argv)
             if (!fin_msg_recvd)
             {
                 //Copy contents into file
-                memcpy(file_buffer + bytes_recvd, read_buffer + 12, recv_data_len);
+                fseek(fp, bytes_recvd, SEEK_SET);
+                 //Write contents of file_buffer to file
+                if (fwrite(read_buffer + 12, sizeof(char), recv_data_len, fp) < 0)
+                {
+                    perror("Error writing to a file");
+                    close(sockfd);
+                    exit(1);
+                }
                 //Increment bytes recvd
                 bytes_recvd += recv_data_len;
             }
@@ -194,26 +212,6 @@ int main(int argc, char **argv)
             printf("SEND %d %d ACK\n", send_seq_num, send_ack_num);
         }
 
-        //Open file for writing
-        char file_name[7] = "1.file";
-        file_name[6] = 0;
-        client_count += 1;
-        file_name[0] = client_count + '0';
-        FILE *fp = fopen(file_name, "w");
-        if (!fp)
-        {
-            perror("Error opening a file");
-            close(sockfd);
-            exit(1);
-        }
-
-        //Write contents of file_buffer to file
-        if (fwrite(file_buffer, sizeof(char), bytes_recvd, fp) < 0)
-        {
-            perror("Error writing to a file");
-            close(sockfd);
-            exit(1);
-        }
 
         //Close file
         fclose(fp);
@@ -251,9 +249,9 @@ int main(int argc, char **argv)
             &len); 
         recv_seq_num = (read_buffer[0] << 8) + read_buffer[1];
         recv_ack_num = (read_buffer[2] << 8) + read_buffer[3];
-        recv_syn_flag = read_buffer[4] & 1;
-        recv_ack_flag = (read_buffer[4] >> 1) & 1;
-        recv_fin_flag = (read_buffer[4] >> 2) & 1;
+        recv_syn_flag = read_buffer[4] % 2;
+        recv_ack_flag = (read_buffer[4] - 2 == 0) || (read_buffer[4] - 2 == 1) || (read_buffer[4] - 2 == 4) || (read_buffer[4] - 2 == 5);
+        recv_fin_flag = (read_buffer[4] - 4 == 0) || (read_buffer[4] - 4 == 1) || (read_buffer[4] - 4 == 2) || (read_buffer[4] - 4 == 3);
         recv_data_len = (read_buffer[5] << 8) + read_buffer[6];
         //Write Log
         memset(recv_log_buffer, 0, MAX_BUFF_SIZE);

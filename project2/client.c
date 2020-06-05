@@ -85,9 +85,9 @@ int main(int argc, char **argv) {
 				&len); 
     short recv_seq_num = (read_buffer[0] << 8) + read_buffer[1];
     short recv_ack_num = (read_buffer[2] << 8) + read_buffer[3];
-    char recv_syn_flag = read_buffer[4] & 1;
-    char recv_ack_flag = (read_buffer[4] >> 1) & 1;
-    char recv_fin_flag = (read_buffer[4] >> 2) & 1;
+    char recv_syn_flag = read_buffer[4] % 2;
+    char recv_ack_flag = (read_buffer[4] - 2 == 0) || (read_buffer[4] - 2 == 1) || (read_buffer[4] - 2 == 4) || (read_buffer[4] - 2 == 5);
+    char recv_fin_flag = (read_buffer[4] - 4 == 0) || (read_buffer[4] - 4 == 1) || (read_buffer[4] - 4 == 2) || (read_buffer[4] - 4 == 3);
     //Write Log
     memset(recv_log_buffer, 0, MAX_BUFF_SIZE);
     sprintf(recv_log_buffer, "RECV %d %d", recv_seq_num, recv_ack_num);
@@ -130,9 +130,9 @@ int main(int argc, char **argv) {
 				&len); 
             recv_seq_num = (read_buffer[0] << 8) + read_buffer[1];
             recv_ack_num = (read_buffer[2] << 8) + read_buffer[3];
-            recv_syn_flag = read_buffer[4] & 1;
-            recv_ack_flag = (read_buffer[4] >> 1) & 1;
-            recv_fin_flag = (read_buffer[4] >> 2) & 1;
+            recv_syn_flag = read_buffer[4] % 2;
+            recv_ack_flag = (read_buffer[4] - 2 == 0) || (read_buffer[4] - 2 == 1) || (read_buffer[4] - 2 == 4) || (read_buffer[4] - 2 == 5);
+            recv_fin_flag = (read_buffer[4] - 4 == 0) || (read_buffer[4] - 4 == 1) || (read_buffer[4] - 4 == 2) || (read_buffer[4] - 4 == 3);
             //Write Log
             memset(recv_log_buffer, 0, MAX_BUFF_SIZE);
             sprintf(recv_log_buffer, "RECV %d %d", recv_seq_num, recv_ack_num);
@@ -158,8 +158,8 @@ int main(int argc, char **argv) {
 
         // ***** Send  Data Packet *****
         //Contruct Message
-        send_seq_num += bytes_file_read;
-        send_ack_num = recv_seq_num + 1;
+        send_seq_num = (send_seq_num + bytes_file_read) % 25601;
+        send_ack_num = (recv_seq_num + 1) % 25601;
         datagram_len = bytes_file_read;
         //Write SEQ NUM and ACK NUM to datagram
         write_buffer[0] = (send_seq_num >> 8) & 0xff;
@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
 
     //***** Send Fin Message *****
     //Contruct Message
-    send_seq_num += bytes_sent;
+    send_seq_num = (send_seq_num + bytes_sent) % 25601;
     send_ack_num = 0;
     datagram_len = 1;
     //Write SEQ NUM and ACK NUM to datagram
@@ -223,10 +223,9 @@ int main(int argc, char **argv) {
             MSG_WAITALL, (struct sockaddr *) &servaddr, 
             &len); 
         recv_seq_num = (read_buffer[0] << 8) + read_buffer[1];
-        recv_ack_num = (read_buffer[2] << 8) + read_buffer[3];
-        recv_syn_flag = read_buffer[4] & 1;
-        recv_ack_flag = (read_buffer[4] >> 1) & 1;
-        recv_fin_flag = (read_buffer[4] >> 2) & 1;
+        recv_syn_flag = read_buffer[4] % 2;
+        recv_ack_flag = (read_buffer[4] - 2 == 0) || (read_buffer[4] - 2 == 1) || (read_buffer[4] - 2 == 4) || (read_buffer[4] - 2 == 5);
+        recv_fin_flag = (read_buffer[4] - 4 == 0) || (read_buffer[4] - 4 == 1) || (read_buffer[4] - 4 == 2) || (read_buffer[4] - 4 == 3);
         //Write Log
         memset(recv_log_buffer, 0, MAX_BUFF_SIZE);
         sprintf(recv_log_buffer, "RECV %d %d", recv_seq_num, recv_ack_num);
@@ -250,8 +249,8 @@ int main(int argc, char **argv) {
     
     //**** ACK the FIN message ******
     //Contruct Message
-    send_seq_num += 1;
-    send_ack_num = recv_seq_num + 1;
+    send_seq_num = (send_seq_num + 1) % 25601;
+    send_ack_num = (recv_seq_num + 1) % 25601;
     datagram_len = 0;
     //Write SEQ NUM and ACK NUM to datagram
     write_buffer[0] = (send_seq_num >> 8) & 0xff;
