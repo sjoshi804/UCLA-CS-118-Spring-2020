@@ -155,6 +155,8 @@ int main(int argc, char **argv)
                 fin_msg_recvd = 1;
                 sprintf(recv_log_buffer + strlen(recv_log_buffer), " FIN");
             }
+            if (recv_ack_num == 0)
+                break;
             printf("%s\n", recv_log_buffer);
             
             if (!fin_msg_recvd)

@@ -9,8 +9,11 @@
 Header Format:
 | SEQ Number = 2 BYTES | ACK Number = 2 BYTES | FLAGS = 1 BYTES | LENGTH = 2 Bytes | 5 NULL BYTES | 
 
-FLAG = 0 0 0 0 0 0 0 1 - SYN
-FLAG = 0 0 0 0 0 0 1 0 - ACK
-FLAG = 0 0 0 0 0 1 0 0 - FIN
+FLAG = 1 for SYN ONLY
+FLAG = 2 for ACK ONLY
+FLAG = 3 for SYN & ACK 
+FLAG = 5 for SYN & FIN
+FLAG = 6 for ACK & FUN
+FLAG = 7 for all 3
 
 LOGICAL OR of the flags you want to set is the byte that forms flags

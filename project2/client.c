@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
     memset(read_buffer, 0, MAX_BUFF_SIZE);
 
     // ******* Open file for sending ******
-    int bytes_sent = 0;
+    long bytes_sent = 0;
     FILE *fp = fopen(argv[3], "r");
     if (!fp)
     {
@@ -166,6 +166,8 @@ int main(int argc, char **argv) {
         write_buffer[1] = send_seq_num & 0xff;
         write_buffer[2] = (send_ack_num >> 8) & 0xff;
         write_buffer[3] = send_ack_num & 0xff;
+        //ACK Flag
+        write_buffer[4] = FLAG_ACK;
         //Write datagram length
         write_buffer[5] = (datagram_len >> 8) & 0xff;
         write_buffer[6] = datagram_len & 0xff;
@@ -173,17 +175,18 @@ int main(int argc, char **argv) {
         sendto(sockfd, write_buffer, MAX_BUFF_SIZE, 
         0, (const struct sockaddr *) &servaddr, 
                 sizeof(servaddr)); 
+        //Incremenet Bytes sent
+        bytes_sent += bytes_file_read;
         //Clean up buffer
         memset(write_buffer, 0, MAX_BUFF_SIZE);
         //Increment window used
         window_used += 1;
         //Log Message
-        printf("SEND %d %d\n", send_seq_num, send_ack_num);
+        printf("SEND %d %d ACK\n", send_seq_num, send_ack_num);
 
         //Read data from file into write buffer for next packet
-        bytes_file_read = fread(write_buffer + 12, sizeof(char), MAX_PAYLOAD_SIZE, fp + bytes_sent);
-        //Incremenet Bytes sent
-        bytes_sent += bytes_file_read;
+        fseek(fp, bytes_sent, SEEK_SET);
+        bytes_file_read = fread(write_buffer + 12, sizeof(char), MAX_PAYLOAD_SIZE, fp);
     }
     
 
