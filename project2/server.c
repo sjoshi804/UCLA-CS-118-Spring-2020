@@ -107,7 +107,6 @@ int main(int argc, char **argv)
         write_buffer[1] = send_seq_num & 0xff;
         write_buffer[2] = (send_ack_num >> 8) & 0xff;
         write_buffer[3] = send_ack_num & 0xff;
-        printf("%d\n", (write_buffer[0] << 8) + write_buffer[1]);
         //Set SYN and ACK Flag
         write_buffer[4] = FLAG_SYN + FLAG_ACK;
         //Write datagram length
@@ -158,7 +157,7 @@ int main(int argc, char **argv)
             }
             printf("%s\n", recv_log_buffer);
             //Copy contents into file
-            memcpy(file_buffer + bytes_recvd, read_buffer, recv_data_len);
+            memcpy(file_buffer + bytes_recvd, read_buffer + 12, recv_data_len);
             //Increment bytes recvd
             bytes_recvd += recv_data_len;
             //Clean up buffer

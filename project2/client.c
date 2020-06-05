@@ -169,6 +169,7 @@ int main(int argc, char **argv) {
         //Write datagram length
         write_buffer[5] = (datagram_len >> 8) & 0xff;
         write_buffer[6] = datagram_len & 0xff;
+        printf("%s\n", write_buffer);
         //Send Packet
         sendto(sockfd, write_buffer, MAX_BUFF_SIZE, 
         0, (const struct sockaddr *) &servaddr, 
@@ -244,10 +245,10 @@ int main(int argc, char **argv) {
         //Clean up buffer
         memset(read_buffer, 0, MAX_BUFF_SIZE);
     }
-
+    
     //**** ACK the FIN message ******
     //Contruct Message
-    send_seq_num += bytes_sent;
+    send_seq_num += 1;
     send_ack_num = 0;
     datagram_len = 0;
     //Write SEQ NUM and ACK NUM to datagram
