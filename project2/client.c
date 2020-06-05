@@ -153,7 +153,8 @@ int main(int argc, char **argv) {
             memset(read_buffer, 0, MAX_BUFF_SIZE);
 
             //Determine how many unacked packets remain and that is the window used now
-            window_used = (send_seq_num + 512 - recv_ack_num) / 512;
+            window_used -= 1;
+            //window_used = (send_seq_num + 512 - recv_ack_num) / 512;
         }
 
         // ***** Send  Data Packet *****
@@ -223,6 +224,7 @@ int main(int argc, char **argv) {
             MSG_WAITALL, (struct sockaddr *) &servaddr, 
             &len); 
         recv_seq_num = (read_buffer[0] << 8) + read_buffer[1];
+        recv_ack_num = (read_buffer[2] << 8) + read_buffer[3];
         recv_syn_flag = read_buffer[4] % 2;
         recv_ack_flag = (read_buffer[4] - 2 == 0) || (read_buffer[4] - 2 == 1) || (read_buffer[4] - 2 == 4) || (read_buffer[4] - 2 == 5);
         recv_fin_flag = (read_buffer[4] - 4 == 0) || (read_buffer[4] - 4 == 1) || (read_buffer[4] - 4 == 2) || (read_buffer[4] - 4 == 3);
