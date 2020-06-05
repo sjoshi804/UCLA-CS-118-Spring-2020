@@ -16,18 +16,19 @@
 #define FLAG_FIN 4
 
 // Driver code 
-int main(int argc, char *argv[]) { 
-
+int main(int argc, char **argv)
+{ 
     if (argc != 2)
     {
-        printf("Incorrect usage. Please enter ./server PORT_NUM");
+        printf("Incorrect usage. Usage is ./server PORT_NUM");
+        exit(1);
     }
 
 	int sockfd; 
 	char read_buffer[MAX_BUFF_SIZE]; 
 	char write_buffer[MAX_BUFF_SIZE];
     char recv_log_buffer[MAX_BUFF_SIZE];
-    char file_buffer[MAX_FILE_SIZE];
+    char file_buffer[MAX_BUFF_SIZE];
     time_t random_seed;
 	struct sockaddr_in servaddr, cliaddr; 
 	
@@ -56,7 +57,6 @@ int main(int argc, char *argv[]) {
 	socklen_t len;
 	len = sizeof(cliaddr); 
     int client_count = 0;
-
     while(1)
     {
         //Clear Read, Write Buffers
@@ -65,7 +65,6 @@ int main(int argc, char *argv[]) {
 
         //Set Random Seed
         srand((unsigned) time(&random_seed) + getpid());
-
         //!!!! Setup Connection !!!!
         //**** Receive SYN message ******
         //Receive message
@@ -83,15 +82,15 @@ int main(int argc, char *argv[]) {
         sprintf(recv_log_buffer, "RECV %d %d", recv_seq_num, recv_ack_num);
         if (recv_syn_flag)
         {
-            sprintf(recv_log_buffer, " SYN");
+            sprintf(recv_log_buffer + strlen(recv_log_buffer), " SYN");
         }
         if (recv_ack_flag)
         {
-            sprintf(recv_log_buffer, " ACK");
+            sprintf(recv_log_buffer + strlen(recv_log_buffer), " ACK");
         }
         if (recv_fin_flag)
         {
-            sprintf(recv_log_buffer, " FIN");
+            sprintf(recv_log_buffer + strlen(recv_log_buffer), " FIN");
         }
         printf("%s\n", recv_log_buffer);
         //Clean up buffer
@@ -144,16 +143,16 @@ int main(int argc, char *argv[]) {
             sprintf(recv_log_buffer, "RECV %d %d", recv_seq_num, recv_ack_num);
             if (recv_syn_flag)
             {
-                sprintf(recv_log_buffer, " SYN");
+                sprintf(recv_log_buffer + strlen(recv_log_buffer), " SYN");
             }
             if (recv_ack_flag)
             {
-                sprintf(recv_log_buffer, " ACK");
+                sprintf(recv_log_buffer + strlen(recv_log_buffer), " ACK");
             }
             if (recv_fin_flag)
             {
                 fin_msg_recvd = 1;
-                sprintf(recv_log_buffer, " FIN");
+                sprintf(recv_log_buffer + strlen(recv_log_buffer), " FIN");
             }
             printf("%s\n", recv_log_buffer);
             //Copy contents into file
@@ -248,16 +247,16 @@ int main(int argc, char *argv[]) {
         sprintf(recv_log_buffer, "RECV %d %d", recv_seq_num, recv_ack_num);
         if (recv_syn_flag)
         {
-            sprintf(recv_log_buffer, " SYN");
+            sprintf(recv_log_buffer + strlen(recv_log_buffer), " SYN");
         }
         if (recv_ack_flag)
         {
-            sprintf(recv_log_buffer, " ACK");
+            sprintf(recv_log_buffer + strlen(recv_log_buffer), " ACK");
         }
         if (recv_fin_flag)
         {
             fin_msg_recvd = 1;
-            sprintf(recv_log_buffer, " FIN");
+            sprintf(recv_log_buffer + strlen(recv_log_buffer), " FIN");
         }
         printf("%s\n", recv_log_buffer);
         //Clean up buffer

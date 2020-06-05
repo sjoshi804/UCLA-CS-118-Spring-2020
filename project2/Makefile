@@ -8,7 +8,7 @@ client:
 	gcc -Wall -Wextra -Werror client.c -o client
 
 server:
-	gcc -Wall -Wextra -Werror server.c -o server
+	gcc -Wall -Wextra  server.c -o server
 
 dist: clean
 	mkdir 105032378_project_2
