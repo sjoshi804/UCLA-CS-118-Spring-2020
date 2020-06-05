@@ -25,8 +25,8 @@ int main(int argc, char **argv)
     }
 
 	int sockfd; 
-	char read_buffer[MAX_BUFF_SIZE]; 
-	char write_buffer[MAX_BUFF_SIZE];
+	unsigned char read_buffer[MAX_BUFF_SIZE]; 
+	unsigned char write_buffer[MAX_BUFF_SIZE];
     char recv_log_buffer[MAX_BUFF_SIZE];
     char file_buffer[MAX_BUFF_SIZE];
     time_t random_seed;
@@ -71,8 +71,8 @@ int main(int argc, char **argv)
         recvfrom(sockfd, read_buffer, MAX_BUFF_SIZE, 
                     0, ( struct sockaddr *) &cliaddr, 
                     &len); 
-        short recv_seq_num = (read_buffer[0] << 8) & read_buffer[1];
-        short recv_ack_num = (read_buffer[2] << 8) & read_buffer[3];
+        short recv_seq_num = (read_buffer[0] << 8) + read_buffer[1];
+        short recv_ack_num = (read_buffer[2] << 8) + read_buffer[3];
         size_t recv_data_len = 0;
         char recv_syn_flag = read_buffer[4] & 1;
         char recv_ack_flag = (read_buffer[4] >> 1) & 1;
@@ -92,9 +92,10 @@ int main(int argc, char **argv)
         {
             sprintf(recv_log_buffer + strlen(recv_log_buffer), " FIN");
         }
-        printf("%s\n", recv_log_buffer);
         //Clean up buffer
         memset(read_buffer, 0, MAX_BUFF_SIZE);
+        //Print Log
+        printf("%s\n", recv_log_buffer);
 
         //**** Send SYN ACK Message *****
         //Contruct Message
@@ -105,17 +106,18 @@ int main(int argc, char **argv)
         write_buffer[0] = (send_seq_num >> 8) & 0xff;
         write_buffer[1] = send_seq_num & 0xff;
         write_buffer[2] = (send_ack_num >> 8) & 0xff;
-        write_buffer[3] = (send_ack_num >> 8) & 0xff;
+        write_buffer[3] = send_ack_num & 0xff;
+        printf("%d\n", (write_buffer[0] << 8) + write_buffer[1]);
         //Set SYN and ACK Flag
         write_buffer[4] = FLAG_SYN + FLAG_ACK;
         //Write datagram length
         write_buffer[5] = (datagram_len >> 8) & 0xff;
-        write_buffer[6] = (datagram_len >> 8) & 0xff;
+        write_buffer[6] = datagram_len & 0xff;
         //No Data, Hence Message complete
         //Send Packet
         sendto(sockfd, write_buffer, MAX_BUFF_SIZE, 
-        0, (const struct sockaddr *) &servaddr, 
-                sizeof(servaddr)); 
+        0, (const struct sockaddr *) &cliaddr, 
+                sizeof(cliaddr)); 
         //Clean up buffer
         memset(write_buffer, 0, MAX_BUFF_SIZE);
         //Log Message
@@ -132,12 +134,12 @@ int main(int argc, char **argv)
             recvfrom(sockfd, read_buffer, MAX_BUFF_SIZE, 
                 MSG_WAITALL, (struct sockaddr *) &servaddr, 
                 &len); 
-            recv_seq_num = (read_buffer[0] << 8) & read_buffer[1];
-            recv_ack_num = (read_buffer[2] << 8) & read_buffer[3];
-            recv_syn_flag = read_buffer[4] & 1;
+            recv_seq_num = (read_buffer[0] << 8) + read_buffer[1];
+            recv_ack_num = (read_buffer[2] << 8) + read_buffer[3];
+            recv_syn_flag = read_buffer[4] + 1;
             recv_ack_flag = (read_buffer[4] >> 1) & 1;
             recv_fin_flag = (read_buffer[4] >> 2) & 1;
-            recv_data_len = (read_buffer[5] << 8) & read_buffer[6];
+            recv_data_len = (read_buffer[5] << 8) + read_buffer[6];
             //Write Log
             memset(recv_log_buffer, 0, MAX_BUFF_SIZE);
             sprintf(recv_log_buffer, "RECV %d %d", recv_seq_num, recv_ack_num);
@@ -197,16 +199,16 @@ int main(int argc, char **argv)
         write_buffer[0] = (send_seq_num >> 8) & 0xff;
         write_buffer[1] = send_seq_num & 0xff;
         write_buffer[2] = (send_ack_num >> 8) & 0xff;
-        write_buffer[3] = (send_ack_num >> 8) & 0xff;
+        write_buffer[3] = send_ack_num & 0xff;
         //Set ACK flag
         write_buffer[4] = FLAG_ACK;
         //Write datagram length
         write_buffer[5] = (datagram_len >> 8) & 0xff;
-        write_buffer[6] = (datagram_len >> 8) & 0xff;
+        write_buffer[6] = datagram_len & 0xff;
         //Send Packet
         sendto(sockfd, write_buffer, MAX_BUFF_SIZE, 
-        0, (const struct sockaddr *) &servaddr, 
-                sizeof(servaddr)); 
+        0, (const struct sockaddr *) &cliaddr, 
+                sizeof(cliaddr)); 
         //Log Message
         printf("SEND %d %d ACK\n", send_seq_num, send_ack_num);
 
@@ -219,16 +221,16 @@ int main(int argc, char **argv)
         write_buffer[0] = (send_seq_num >> 8) & 0xff;
         write_buffer[1] = send_seq_num & 0xff;
         write_buffer[2] = (send_ack_num >> 8) & 0xff;
-        write_buffer[3] = (send_ack_num >> 8) & 0xff;
+        write_buffer[3] = send_ack_num & 0xff;
         //Set ACK flag
         write_buffer[4] = FLAG_ACK;
         //Write datagram length
         write_buffer[5] = (datagram_len >> 8) & 0xff;
-        write_buffer[6] = (datagram_len >> 8) & 0xff;
+        write_buffer[6] = datagram_len & 0xff;
         //Send Packet
         sendto(sockfd, write_buffer, MAX_BUFF_SIZE, 
-        0, (const struct sockaddr *) &servaddr, 
-                sizeof(servaddr)); 
+        0, (const struct sockaddr *) &cliaddr, 
+                sizeof(cliaddr)); 
         //Log Message
         printf("SEND %d %d FIN\n", send_seq_num, send_ack_num);
 
@@ -236,12 +238,12 @@ int main(int argc, char **argv)
         recvfrom(sockfd, read_buffer, MAX_BUFF_SIZE, 
             MSG_WAITALL, (struct sockaddr *) &servaddr, 
             &len); 
-        recv_seq_num = (read_buffer[0] << 8) & read_buffer[1];
-        recv_ack_num = (read_buffer[2] << 8) & read_buffer[3];
+        recv_seq_num = (read_buffer[0] << 8) + read_buffer[1];
+        recv_ack_num = (read_buffer[2] << 8) + read_buffer[3];
         recv_syn_flag = read_buffer[4] & 1;
         recv_ack_flag = (read_buffer[4] >> 1) & 1;
         recv_fin_flag = (read_buffer[4] >> 2) & 1;
-        recv_data_len = (read_buffer[5] << 8) & read_buffer[6];
+        recv_data_len = (read_buffer[5] << 8) + read_buffer[6];
         //Write Log
         memset(recv_log_buffer, 0, MAX_BUFF_SIZE);
         sprintf(recv_log_buffer, "RECV %d %d", recv_seq_num, recv_ack_num);
@@ -258,7 +260,6 @@ int main(int argc, char **argv)
             fin_msg_recvd = 1;
             sprintf(recv_log_buffer + strlen(recv_log_buffer), " FIN");
         }
-        printf("%s\n", recv_log_buffer);
         //Clean up buffer
         memset(read_buffer, 0, MAX_BUFF_SIZE);
     }
