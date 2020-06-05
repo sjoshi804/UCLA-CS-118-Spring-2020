@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     //Contruct Message
     short send_seq_num = rand() % 25601;
     short send_ack_num = 0;
-    short datagram_len = 0;
+    short datagram_len = 1;
     //Write SEQ NUM and ACK NUM to datagram
     write_buffer[0] = (send_seq_num >> 8) & 0xff;
     write_buffer[1] = send_seq_num & 0xff;
@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
 
         // ***** Send  Data Packet *****
         //Contruct Message
-        send_seq_num += bytes_sent;
+        send_seq_num += bytes_file_read;
         send_ack_num = recv_seq_num + 1;
         datagram_len = bytes_file_read;
         //Write SEQ NUM and ACK NUM to datagram
@@ -169,22 +169,21 @@ int main(int argc, char **argv) {
         //Write datagram length
         write_buffer[5] = (datagram_len >> 8) & 0xff;
         write_buffer[6] = datagram_len & 0xff;
-        printf("%s\n", write_buffer);
         //Send Packet
         sendto(sockfd, write_buffer, MAX_BUFF_SIZE, 
         0, (const struct sockaddr *) &servaddr, 
                 sizeof(servaddr)); 
         //Clean up buffer
         memset(write_buffer, 0, MAX_BUFF_SIZE);
-        //Incremenet Bytes sent
-        bytes_sent += bytes_file_read;
         //Increment window used
         window_used += 1;
         //Log Message
-        printf("SEND %d %d SYN\n", send_seq_num, send_ack_num);
+        printf("SEND %d %d\n", send_seq_num, send_ack_num);
 
         //Read data from file into write buffer for next packet
         bytes_file_read = fread(write_buffer + 12, sizeof(char), MAX_PAYLOAD_SIZE, fp + bytes_sent);
+        //Incremenet Bytes sent
+        bytes_sent += bytes_file_read;
     }
     
 
@@ -194,7 +193,7 @@ int main(int argc, char **argv) {
     //Contruct Message
     send_seq_num += bytes_sent;
     send_ack_num = 0;
-    datagram_len = 0;
+    datagram_len = 1;
     //Write SEQ NUM and ACK NUM to datagram
     write_buffer[0] = (send_seq_num >> 8) & 0xff;
     write_buffer[1] = send_seq_num & 0xff;
@@ -249,7 +248,7 @@ int main(int argc, char **argv) {
     //**** ACK the FIN message ******
     //Contruct Message
     send_seq_num += 1;
-    send_ack_num = 0;
+    send_ack_num = recv_seq_num + 1;
     datagram_len = 0;
     //Write SEQ NUM and ACK NUM to datagram
     write_buffer[0] = (send_seq_num >> 8) & 0xff;
@@ -264,7 +263,7 @@ int main(int argc, char **argv) {
     //Send Packet
     sendto(sockfd, write_buffer, MAX_BUFF_SIZE, 
     0, (const struct sockaddr *) &servaddr, 
-            sizeof(servaddr)); 
+            sizeof(servaddr));         
     //Log Message
     printf("SEND %d %d ACK\n", send_seq_num, send_ack_num);
 

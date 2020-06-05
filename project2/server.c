@@ -73,7 +73,7 @@ int main(int argc, char **argv)
                     &len); 
         short recv_seq_num = (read_buffer[0] << 8) + read_buffer[1];
         short recv_ack_num = (read_buffer[2] << 8) + read_buffer[3];
-        size_t recv_data_len = 0;
+        size_t recv_data_len = 1;
         char recv_syn_flag = read_buffer[4] & 1;
         char recv_ack_flag = (read_buffer[4] >> 1) & 1;
         char recv_fin_flag = (read_buffer[4] >> 2) & 1;
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
         //**** Send SYN ACK Message *****
         //Contruct Message
         short send_seq_num = rand() % 25601;
-        short send_ack_num = recv_seq_num + 1;
+        short send_ack_num = recv_seq_num + recv_data_len;
         short datagram_len = 0;
         //Write SEQ NUM and ACK NUM to datagram
         write_buffer[0] = (send_seq_num >> 8) & 0xff;
@@ -156,20 +156,48 @@ int main(int argc, char **argv)
                 sprintf(recv_log_buffer + strlen(recv_log_buffer), " FIN");
             }
             printf("%s\n", recv_log_buffer);
-            //Copy contents into file
-            memcpy(file_buffer + bytes_recvd, read_buffer + 12, recv_data_len);
-            //Increment bytes recvd
-            bytes_recvd += recv_data_len;
+            
+            if (!fin_msg_recvd)
+            {
+                //Copy contents into file
+                memcpy(file_buffer + bytes_recvd, read_buffer + 12, recv_data_len);
+                //Increment bytes recvd
+                bytes_recvd += recv_data_len;
+            }
+
             //Clean up buffer
             memset(read_buffer, 0, MAX_BUFF_SIZE);
+        
+            //Send ACK for message
+            //Contruct Message
+            send_ack_num = (recv_seq_num + recv_data_len) % 25601;
+            datagram_len = 0;
+            //Write SEQ NUM and ACK NUM to datagram
+            write_buffer[0] = (send_seq_num >> 8) & 0xff;
+            write_buffer[1] = send_seq_num & 0xff;
+            write_buffer[2] = (send_ack_num >> 8) & 0xff;
+            write_buffer[3] = send_ack_num & 0xff;
+            //Set ACK flag
+            write_buffer[4] = FLAG_ACK;
+            //Write datagram length
+            write_buffer[5] = (datagram_len >> 8) & 0xff;
+            write_buffer[6] = datagram_len & 0xff;
+            //Send Packet
+            sendto(sockfd, write_buffer, MAX_BUFF_SIZE, 
+            0, (const struct sockaddr *) &cliaddr, 
+                    sizeof(cliaddr)); 
+             //Clean Buffer
+            memset(write_buffer, 0, MAX_BUFF_SIZE);
+            //Log Message
+            printf("SEND %d %d ACK\n", send_seq_num, send_ack_num);
         }
 
         //Open file for writing
-        char file_name[6];
-        memset(file_name, 0, 6);
+        char file_name[7] = "1.file";
+        file_name[6] = 0;
         client_count += 1;
-        //sprintf(file_name, "%d.file", client_count);
-        FILE *fp = fopen("test", "w");
+        file_name[0] = client_count + '0';
+        FILE *fp = fopen(file_name, "w");
         if (!fp)
         {
             perror("Error opening a file");
@@ -190,30 +218,11 @@ int main(int argc, char **argv)
 
         //!!!!!! Close connection !!!!!!!
 
-        //***** Send Ack for FIN Message *****
-        //Contruct Message
-        send_ack_num = recv_seq_num + 1;
-        datagram_len = 0;
-        //Write SEQ NUM and ACK NUM to datagram
-        write_buffer[0] = (send_seq_num >> 8) & 0xff;
-        write_buffer[1] = send_seq_num & 0xff;
-        write_buffer[2] = (send_ack_num >> 8) & 0xff;
-        write_buffer[3] = send_ack_num & 0xff;
-        //Set ACK flag
-        write_buffer[4] = FLAG_ACK;
-        //Write datagram length
-        write_buffer[5] = (datagram_len >> 8) & 0xff;
-        write_buffer[6] = datagram_len & 0xff;
-        //Send Packet
-        sendto(sockfd, write_buffer, MAX_BUFF_SIZE, 
-        0, (const struct sockaddr *) &cliaddr, 
-                sizeof(cliaddr)); 
-        //Log Message
-        printf("SEND %d %d ACK\n", send_seq_num, send_ack_num);
-
+        //***** Send Ack for FIN Message - already done by loop above *****
+        
         //***** Send FIN Message *****
         //Contruct Message
-        send_ack_num = recv_seq_num + 1;
+        send_ack_num = 0;
         datagram_len = 0;
         //Write SEQ NUM and ACK NUM to datagram
         write_buffer[0] = (send_seq_num >> 8) & 0xff;
@@ -229,6 +238,8 @@ int main(int argc, char **argv)
         sendto(sockfd, write_buffer, MAX_BUFF_SIZE, 
         0, (const struct sockaddr *) &cliaddr, 
                 sizeof(cliaddr)); 
+        //Clean Buffer
+        memset(write_buffer, 0, MAX_BUFF_SIZE);
         //Log Message
         printf("SEND %d %d FIN\n", send_seq_num, send_ack_num);
 
@@ -258,6 +269,8 @@ int main(int argc, char **argv)
             fin_msg_recvd = 1;
             sprintf(recv_log_buffer + strlen(recv_log_buffer), " FIN");
         }
+        //Print Log
+        printf("%s\n", recv_log_buffer);
         //Clean up buffer
         memset(read_buffer, 0, MAX_BUFF_SIZE);
     }
