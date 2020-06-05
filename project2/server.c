@@ -17,6 +17,12 @@
 
 // Driver code 
 int main(int argc, char *argv[]) { 
+
+    if (argc != 2)
+    {
+        printf("Incorrect usage. Please enter ./server PORT_NUM");
+    }
+
 	int sockfd; 
 	char read_buffer[MAX_BUFF_SIZE]; 
 	char write_buffer[MAX_BUFF_SIZE];
@@ -53,6 +59,13 @@ int main(int argc, char *argv[]) {
 
     while(1)
     {
+        //Clear Read, Write Buffers
+        memset(read_buffer, 0, MAX_BUFF_SIZE);
+        memset(write_buffer, 0, MAX_BUFF_SIZE);
+
+        //Set Random Seed
+        srand((unsigned) time(&random_seed) + getpid());
+
         //!!!! Setup Connection !!!!
         //**** Receive SYN message ******
         //Receive message

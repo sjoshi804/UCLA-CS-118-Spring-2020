@@ -18,4 +18,4 @@ dist: clean
 	tar -czf 105032378.tar.gz 105032378_project_2
 
 clean:	
-	rm -rf *tar* client server  DS_Store *~ 105032378_project_2
+	rm -rf *tar* client server DS_Store *~ 105032378_project_2

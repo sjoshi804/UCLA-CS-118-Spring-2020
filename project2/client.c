@@ -14,7 +14,13 @@
 #define FLAG_ACK 2
 #define FLAG_FIN 4
 
-int main(int argc, char *argv[]) { 
+int main(int argc, char *argv[]) {
+
+    if (argc != 4)
+    {
+        printf("Incorrect usage. Please enter ./client HOST_NAME PORT_NUM FILE_NAME");
+    }
+
 	int sockfd; 
 	char read_buffer[MAX_BUFF_SIZE]; 
 	char write_buffer[MAX_BUFF_SIZE];
@@ -35,7 +41,6 @@ int main(int argc, char *argv[]) {
 	servaddr.sin_port = htons(atoi(argv[2])); //Second argument is port
 	servaddr.sin_addr.s_addr = INADDR_ANY; 
 	
-	int num_bytes;
     socklen_t len; 
 	
     //Clear Read, Write Buffers
