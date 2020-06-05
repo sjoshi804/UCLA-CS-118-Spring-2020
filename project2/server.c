@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 	unsigned char read_buffer[MAX_BUFF_SIZE]; 
 	unsigned char write_buffer[MAX_BUFF_SIZE];
     char recv_log_buffer[MAX_BUFF_SIZE];
-    char file_buffer[MAX_BUFF_SIZE];
+    unsigned char file_buffer[MAX_BUFF_SIZE];
     time_t random_seed;
 	struct sockaddr_in servaddr, cliaddr; 
 	
@@ -169,8 +169,8 @@ int main(int argc, char **argv)
         char file_name[6];
         memset(file_name, 0, 6);
         client_count += 1;
-        sprintf(file_name, "%d.file", client_count);
-        FILE *fp = fopen(file_name, "w+");
+        //sprintf(file_name, "%d.file", client_count);
+        FILE *fp = fopen("test", "w");
         if (!fp)
         {
             perror("Error opening a file");
@@ -214,7 +214,6 @@ int main(int argc, char **argv)
 
         //***** Send FIN Message *****
         //Contruct Message
-        send_seq_num += 1;
         send_ack_num = recv_seq_num + 1;
         datagram_len = 0;
         //Write SEQ NUM and ACK NUM to datagram
@@ -222,8 +221,8 @@ int main(int argc, char **argv)
         write_buffer[1] = send_seq_num & 0xff;
         write_buffer[2] = (send_ack_num >> 8) & 0xff;
         write_buffer[3] = send_ack_num & 0xff;
-        //Set ACK flag
-        write_buffer[4] = FLAG_ACK;
+        //Set FIN flag
+        write_buffer[4] = FLAG_FIN;
         //Write datagram length
         write_buffer[5] = (datagram_len >> 8) & 0xff;
         write_buffer[6] = datagram_len & 0xff;
