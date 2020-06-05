@@ -17,3 +17,45 @@ FLAG = 6 for ACK & FUN
 FLAG = 7 for all 3
 
 LOGICAL OR of the flags you want to set is the byte that forms flags
+
+
+## Client Design
+
+- Send SYN Packet
+
+- Wait to receive SYN ACK Packet
+
+- Start sending data in pipelined manner until window is full
+
+- Then wait for ACKs and then free space in window accordingly
+
+- Loop until all data sent
+
+- Send FIN
+
+- Wait to receive FIN (log all ACKs received while waiting)
+
+- Send ACK for FIN
+
+- Terminate
+
+## Server Design
+
+- Wait for SYN
+
+- Send SYN ACK
+
+- Receive Packet and Send ACK until Fin received
+
+- Send FIN (note FIN ACKed in previous step)
+
+- Wait for ACK for FIN
+
+- Loop for next client
+
+## Challenges
+
+- Getting the header which had seq num, ack num, data len as bytes rather 
+than each of their chars to work correctly. Had lots of issues with this.
+- Dealing with the window correctly
+- Parsing Flags
